@@ -120,6 +120,6 @@ func DeleteUser(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		json.NewEncoder(w).Encode("User not found")
+		json.NewEncoder(w).Encode("User has been deleted")
 	}
 }
