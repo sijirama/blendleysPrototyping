@@ -72,28 +72,54 @@ func CreateUser(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-//updateUser updates the user
+// updateUser updates the user
 func UpdateUser(db *sql.DB) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request){
-        var u User
-        json.NewDecoder(r.Body).Decode(&u)
+	return func(w http.ResponseWriter, r *http.Request) {
+		var u User
+		json.NewDecoder(r.Body).Decode(&u)
+		vars := mux.Vars(r)
+		id := vars["id"]
 
-        vars := mux.Vars(r)
-        id := vars["id"]
+		//Execute the update query
+		_, err := db.Exec("UPDATE users set name = $1 , email = $2 Where id = $3", u.Name, u.Email, id)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-        //Execute the update query
-        _,err := db.Exec("UPDATE users set name = $1 , email = $2 Where id = $3" , u.Name,u.Email,id)
-        if err != nil {
-            log.Fatal(err)
-        }
+		// retrieve the updated user data
+		var updatedUser User
+		err = db.QueryRow("SELECT * FROM users WHERE id = $1", id).Scan(&updatedUser.Id, &updatedUser.Name, &updatedUser.Email)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-        // retrieve the updated user data
-        var updatedUser User
-        err =  db.QueryRow("SELECT * FROM users WHERE id = $1" , id).Scan(&updatedUser.Id , &updatedUser.Name, &updatedUser.Email)
-        if err != nil {
-            log.Fatal(err)
-        }
+		json.NewEncoder(w).Encode(updatedUser)
+	}
+}
 
-        json.NewEncoder(w).Encode(updatedUser)
-    }
+// delete the user
+func DeleteUser(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+		id := vars["id"]
+
+        // does the user exist ?
+		var u User
+		err := db.QueryRow("SELECT * FROM users WHERE id = $1", id).Scan(&u.Id, &u.Name, &u.Email)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+        // if the user exists, delete it
+		_, err = db.Exec("DELETE FROM users WHERE id = $1", id)
+		if err != nil {
+			log.Fatal(err)
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		json.NewEncoder(w).Encode("User not found")
+	}
 }
