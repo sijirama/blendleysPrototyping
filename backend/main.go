@@ -1,20 +1,17 @@
 package main
 
 import (
+	"api/handlers"
+	"api/lib"
 	"database/sql"
-	"encoding/json"
-	"github.com/gorilla/mux"
-	_ "github.com/lib/pq"
+	_ "encoding/json"
 	"log"
 	"net/http"
 	"os"
-)
 
-type User struct {
-	Id    int    `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
+	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
+)
 
 func main() {
 	// connect to the databse
@@ -30,12 +27,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-    //create router
-    router := mux.NewRouter()
+	//create router
+	router := mux.NewRouter()
 
-    router.HandleFunc("/api/go/users" , getUsers(db) ).Methods("GET")
-    router.HandleFunc("/api/go/users" , createUsers(db) ).Methods("POST")
-    router.HandleFunc("/api/go/users/{id}" , getUsers(db) ).Methods("GET")
-    router.HandleFunc("/api/go/users/{id}" , updateUsers(db) ).Methods("PUT")
-    router.HandleFunc("/api/go/users/{id}" , deleteUsers(db) ).Methods("DELETE")
+	router.HandleFunc("/api/go/users", handlers.GetAllUsers(db)).Methods("GET")
+	router.HandleFunc("/api/go/users", createUsers(db)).Methods("POST")
+	router.HandleFunc("/api/go/users/{id}", getUsers(db)).Methods("GET")
+	router.HandleFunc("/api/go/users/{id}", updateUsers(db)).Methods("PUT")
+	router.HandleFunc("/api/go/users/{id}", deleteUsers(db)).Methods("DELETE")
+
+	//wrap
+	enhancedRouter := lib.EnableCors(lib.JsonContentTypeMiddleware(router))
+
+	//start server
+	log.Fatal(http.ListenAndServe(":8000", enhancedRouter))
 }
