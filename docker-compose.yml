@@ -1,4 +1,18 @@
 services:
+  
+  nextapp:
+    container_name: nextapp
+    image: nextapp:1.0.0
+    build:
+      context: ./frontend
+      dockerfile: next.dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_URL=http://localhost:8000
+    depends_on:
+      - goapp
+
   goapp:
     container_name: goapp
     image: goapp:1.0.0
@@ -13,6 +27,14 @@ services:
       - '8000:8000'
     depends_on: 
       - db
+    develop:
+      watch: 
+        - action: sync
+          path: backend/main.go
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: backend/go.mod
 
   db:
     container_name: db

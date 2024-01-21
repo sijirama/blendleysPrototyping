@@ -32,6 +32,7 @@ func main() {
 		log.Fatal("2", err)
 	}
 
+
 	//create router
 	router := mux.NewRouter()
 
