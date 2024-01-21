@@ -1,3 +1,5 @@
+version: '3'
+
 services:
   
   nextapp:
@@ -9,7 +11,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://goapp:8000
+      - NEXT_PUBLIC_SIJIBOMI=JUST_CHECKING_THIS_STUFF
     depends_on:
       - goapp
 
@@ -23,8 +26,7 @@ services:
       DATABASE_URL: postgres://postgres:postgres@db:5432/postgres?sslmode=disable
       ENV: PROD
     ports:
-      - '8080:8080'
-      - '8000:8000'
+      - 8000:8000
     depends_on: 
       - db
     develop:
