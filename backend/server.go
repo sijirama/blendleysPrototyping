@@ -3,8 +3,8 @@ package main
 import (
 	"api/handlers"
 	"api/lib"
-	"net/http"
 	"github.com/gorilla/mux"
+	"net/http"
 )
 
 func ServerSettings() http.Handler {
@@ -14,7 +14,13 @@ func ServerSettings() http.Handler {
 
 	//routes
 	router.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
-	router.HandleFunc("/api/user", handlers.HandleCreateAccount).Methods("POST")
+	router.HandleFunc("/api/user/register", handlers.HandleCreateAccount).Methods("POST")
+	router.HandleFunc("/api/user/authenticate", handlers.HandleLogInToAccount).Methods("POST")
+
+    // secured routes
+    securedRouter  := router.PathPrefix("").Subrouter()
+    securedRouter.Use(lib.JwtVerification)
+    securedRouter.HandleFunc("/api/home", handlers.WelcomeToBlendle).Methods("GET")
 
 	//wrap
 	enhancedRouter := lib.EnableCors(lib.JsonContentTypeMiddleware(router))
