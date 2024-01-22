@@ -1,125 +1,37 @@
 package handlers
 
 import (
-	"database/sql"
+	"api/lib"
+	_ "api/lib"
+	Mytype "api/type"
 	"encoding/json"
-	"log"
+	"fmt"
+	_ "fmt"
+	_ "log"
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
-type User struct {
-	Id    int    `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
+func HandleCreateAccount(w http.ResponseWriter, r *http.Request) {
+	db := lib.DB
+	var u Mytype.Users
+	json.NewDecoder(r.Body).Decode(&u)
+	hashedPassword, _ := lib.HashPassword(u.Password)
+
+	err := db.QueryRow("INSERT INTO users (firstname, lastname, username, password, email ) VALUES ($1 , $2, $3, $4, $5) RETURNING id", u.FirstName, u.LastName, u.Username, hashedPassword, u.Email).Scan(&u.ID)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+	json.NewEncoder(w).Encode(fmt.Sprintf("User %s has been created with ID %v", u.FirstName, u.ID))
 }
 
-func GetAllUsers(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		rows, err := db.Query("SELECT * FROM users")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()
-
-		users := []User{}
-
-		for rows.Next() {
-			var u User
-			if err := rows.Scan(&u.Id, &u.Name, &u.Email); err != nil {
-				log.Fatal(err)
-			}
-			users = append(users, u)
-		}
-
-		if err := rows.Err(); err != nil {
-			log.Fatal(err)
-		}
-
-		json.NewEncoder(w).Encode(users)
-
-	}
+func handleLogInToAccount(w http.ResponseWriter, r *http.Request) {
 }
 
-// get user by id
-func GetUser(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		id := vars["id"]
-
-		var u User
-		err := db.QueryRow("SELECT * FROM users WHERE id = $1", id).Scan(&u.Id, &u.Name, &u.Email)
-		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-		json.NewEncoder(w).Encode(u)
-	}
+func handleGetAccount(w http.ResponseWriter, r *http.Request) {
 }
 
-// createUser creates a new user
-func CreateUser(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var u User
-		json.NewDecoder(r.Body).Decode(&u)
-
-		err := db.QueryRow("INSERT INTO users (name, email) VALUES ($1 , $2) RETURNING id", u.Name, u.Email).Scan(&u.Id)
-		if err != nil {
-			log.Fatal(err)
-		}
-		json.NewEncoder(w).Encode(u)
-	}
-}
-
-// updateUser updates the user
-func UpdateUser(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var u User
-		json.NewDecoder(r.Body).Decode(&u)
-		vars := mux.Vars(r)
-		id := vars["id"]
-
-		//Execute the update query
-		_, err := db.Exec("UPDATE users set name = $1 , email = $2 Where id = $3", u.Name, u.Email, id)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// retrieve the updated user data
-		var updatedUser User
-		err = db.QueryRow("SELECT * FROM users WHERE id = $1", id).Scan(&updatedUser.Id, &updatedUser.Name, &updatedUser.Email)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		json.NewEncoder(w).Encode(updatedUser)
-	}
-}
-
-// delete the user
-func DeleteUser(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		vars := mux.Vars(r)
-		id := vars["id"]
-
-        // does the user exist ?
-		var u User
-		err := db.QueryRow("SELECT * FROM users WHERE id = $1", id).Scan(&u.Id, &u.Name, &u.Email)
-		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-
-        // if the user exists, delete it
-		_, err = db.Exec("DELETE FROM users WHERE id = $1", id)
-		if err != nil {
-			log.Fatal(err)
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-
-		json.NewEncoder(w).Encode("User has been deleted")
-	}
+func handleDeleteAccount(w http.ResponseWriter, r *http.Request) {
 }
