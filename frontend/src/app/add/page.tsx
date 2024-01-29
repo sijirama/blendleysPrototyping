@@ -16,9 +16,9 @@ export default function Home() {
     }
 
     return (
-        <div className="grid grid-cols-2 gap-2 m-5 p-3">
-            <div className="col-span-1">
-                <h1>Blendle</h1>
+        <div className="grid grid-cols-3 gap-2 m-5 p-3">
+            <div className="col-span-2 w-full">
+                <h1 className="my-5 font-bold">Blendle</h1>
                     <div className="border rounded-md p-5">
                         <Editor />
                     </div>

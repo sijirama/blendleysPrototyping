@@ -1,4 +1,5 @@
 "use client";
+import { DecisionNode } from "@/lib/DecisionPlugin";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const Editor = () => {
@@ -30,6 +31,7 @@ const Editor = () => {
                     code: Code,
                     inlineCode: InlineCode,
                     embed: Embed,
+                    Decision:DecisionNode
                 },
             });
         }
@@ -69,8 +71,8 @@ const Editor = () => {
             content: blocks,
             communityId: "3000",
         };
-        console.log('%o',payload);
-        console.log(payload.content);
+        //console.log('%o',payload);
+        console.log(payload.content.blocks);
         //CreatePost(payload);
     };
 
@@ -82,12 +84,12 @@ const Editor = () => {
         <div className="w-full p-4 bg-zinc-50 rounded-lg border border-zinc-200">
             <form
                 id="community-post-form"
-                className="w-fit"
+                className="w-full"
                 //onSubmit={handleSubmit(onSubmit)}
                 onSubmit={(event) => onSubmit(event)}
             >
-                <div className="prose prose-stone dark:prose-invert">
-                    <div id="editor" className="min-h-[500px] max-w-[350px]" />
+                <div className="prose prose-stone dark:prose-invert  overflow-hidden ">
+                    <div id="editor" className="max-h-[300px] min-w-full flex-wrap text-wrap" />
                 </div>
             </form>
         </div>
